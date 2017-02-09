@@ -1,4 +1,4 @@
-module CodeMirror (CmConfig, codeMirror) where
+module CodeMirror exposing (CmConfig, codeMirror)
 
 {-| This library fills a bunch of important niches in Elm. A `Maybe` can help
 you with optional arguments, error handling, and records with optional fields.
@@ -33,11 +33,11 @@ type alias CmConfig =
   }
 
 
-codeMirror' : Config -> (String -> Signal.Message) -> Html
-codeMirror' =
+codeMirror_ : Config -> (String -> msg) -> Html a
+codeMirror_ =
   Native.CodeMirror.codeMirror
 
 
-codeMirror : CmConfig -> (String -> Signal.Message) -> String -> Html
+codeMirror : CmConfig -> (String -> msg) -> String -> Html a
 codeMirror config msgCreator code =
-  codeMirror' { cmConfig = config, value = code } msgCreator
+  codeMirror_ { cmConfig = config, value = code } msgCreator

@@ -1,8 +1,8 @@
-module Main (..) where
+module Main exposing (..)
 
 import Html exposing (..)
 import CodeMirror exposing (..)
-import StartApp.Simple exposing (start)
+import Html exposing (..)
 import Html.Events exposing (..)
 import Html.Attributes exposing (..)
 
@@ -45,9 +45,9 @@ cmConfig model =
 
 
 
--- cmInstance : Signal.Address String -> String -> Html
+-- cmInstance : String -> String -> Html Cmd
 -- cmInstance add code =
---   codeMirror  (Signal.message add << CodeChange) code
+--   codeMirror CodeChange code
 
 
 containerStyle =
@@ -66,15 +66,15 @@ container children =
 -- lazy way to test to see if it handles re-rendering well
 
 
-codeMirrorView : Signal.Address Action -> Model -> Html
-codeMirrorView add model =
+codeMirrorView : Model -> Html Action
+codeMirrorView model =
   if (model.theme == "hide") then
     div [] [ text "hidden" ]
   else
-    codeMirror (cmConfig model) (Signal.message add << CodeChange) model.code
+    codeMirror (cmConfig model) CodeChange model.code
 
 
-header : Html
+header : Html Action
 header =
   div
     []
@@ -83,14 +83,14 @@ header =
     ]
 
 
-checkbox : Signal.Address Action -> Bool -> (Bool -> Action) -> String -> Html
-checkbox address isChecked tag name =
+checkbox : Bool -> (Bool -> Action) -> String -> Html Action
+checkbox isChecked tag name =
   div
     []
     [ input
-        [ type' "checkbox"
+        [ type_ "checkbox"
         , checked isChecked
-        , on "change" targetChecked (Signal.message address << tag)
+        , onCheck tag
         ]
         []
     , text name
@@ -98,16 +98,17 @@ checkbox address isChecked tag name =
     ]
 
 
-view : Signal.Address Action -> Model -> Html
-view add model =
+view : Model -> Html Action
+view model =
   div
     []
     [ header
     , div
         [ style [ ( "display", "flex" ) ] ]
         [ container
-            [ h2 [] [ text "Instance 1" ], codeMirrorView add model ]
-        , container [ h2 [] [ text "Instance 2" ], codeMirror (cmConfig model) (Signal.message add << CodeChange) model.code ]
+            [ h2 [] [ text "Instance 1" ], codeMirrorView model ]
+        , container [ h2 [] [ text "Instance 2" ]
+        , codeMirror (cmConfig model) CodeChange model.code ]
         , container
             [ h2
                 []
@@ -119,7 +120,7 @@ view add model =
                     [ placeholder "Theme"
                     , inputStyle
                     , value model.theme
-                    , on "input" targetValue (Signal.message add << ChangeTheme)
+                    , onInput ChangeTheme
                     ]
                     []
                 ]
@@ -130,19 +131,19 @@ view add model =
                     [ placeholder "Mode"
                     , value model.mode
                     , inputStyle
-                    , on "input" targetValue (Signal.message add << ChangeMode)
+                    , onInput ChangeMode
                     ]
                     []
                 ]
             , div
                 []
                 [ text "Line numbers"
-                , checkbox add model.lineNumbers ChangeLineNumbers "Line numbers"
+                , checkbox model.lineNumbers ChangeLineNumbers "Line numbers"
                 ]
             , div
                 []
                 [ text "Line wrapping"
-                , checkbox add model.lineWrapping ChangeLineWrapping "Line wrapping"
+                , checkbox model.lineWrapping ChangeLineWrapping "Line wrapping"
                 ]
             , div
                 []
@@ -151,7 +152,7 @@ view add model =
                     [ placeholder "Code"
                     , value model.code
                     , inputStyle
-                    , on "input" targetValue (Signal.message add << CodeChange)
+                    , onInput CodeChange
                     ]
                     []
                 ]
@@ -180,7 +181,7 @@ update acc model =
 
 
 main =
-  StartApp.Simple.start
+  Html.beginnerProgram
     { model = init
     , update = update
     , view = view
